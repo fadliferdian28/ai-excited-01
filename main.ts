@@ -1,23 +1,24 @@
 import { copyFileSync, mkdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const source = join(import.meta.dirname, "entry.png");
-const outputDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
-const target = join(outputDir, "entry.png");
+const repoRoot = dirname(fileURLToPath(import.meta.url));
+const source = join(repoRoot, "entry.png");
+const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 
-let sourceSize;
+let size: number;
 try {
-  sourceSize = statSync(source).size;
+  size = statSync(source).size;
 } catch {
-  console.error(`error: source image not found at ${source}`);
+  console.error(`error: source image not found: ${source}`);
   process.exit(1);
 }
-if (sourceSize === 0) {
-  console.error(`error: source image at ${source} is empty`);
+if (size === 0) {
+  console.error(`error: source image is empty: ${source}`);
   process.exit(1);
 }
 
-mkdirSync(outputDir, { recursive: true });
-copyFileSync(source, target);
-
-console.log(`wrote ${target} (${sourceSize} bytes)`);
+mkdirSync(outDir, { recursive: true });
+const dest = join(outDir, "entry.png");
+copyFileSync(source, dest);
+console.log(`wrote ${dest} (${size} bytes)`);
